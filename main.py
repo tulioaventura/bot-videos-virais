@@ -9,7 +9,8 @@ CHAT_ID = os.environ["CHAT_ID"]
 
 
 def search_shorts(query, max_results=10):
-    published_after = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    # Vídeos dos últimos 3 dias (mais recentes)
+    published_after = (datetime.now(timezone.utc) - timedelta(days=3)).strftime("%Y-%m-%dT%H:%M:%SZ")
     
     url = "https://www.googleapis.com/youtube/v3/search"
     params = {
@@ -38,7 +39,7 @@ def search_shorts(query, max_results=10):
     # Buscar estatísticas (views)
     url_stats = "https://www.googleapis.com/youtube/v3/videos"
     params_stats = {
-        "part": "snippet,statistics,contentDetails",
+        "part": "snippet,statistics",
         "id": ",".join(video_ids),
         "key": YOUTUBE_API_KEY
     }
@@ -76,20 +77,26 @@ def send_telegram(text):
 
 
 def main():
-    print("Buscando shorts...")
+    print("Buscando shorts recentes...")
     
-    # Buscas focadas em esportes e tecnologia
+    # Palavras-chave que você pediu
     queries = [
-        "sports highlights shorts",
-        "football soccer nba highlights",
-        "technology gadgets AI shorts",
-        "tech news smartphone AI"
+        "futebol gols",
+        "futebol highlights",
+        "futevolei",
+        "futevôlei",
+        "gols incríveis",
+        "celular review",
+        "smartphone novidade",
+        "IA inteligência artificial",
+        "ChatGPT IA",
+        "AI technology shorts"
     ]
     
     all_videos = []
     for q in queries:
         try:
-            found = search_shorts(q, max_results=8)
+            found = search_shorts(q, max_results=6)
             all_videos.extend(found)
             print(f"Query '{q}': {len(found)} vídeos")
         except Exception as e:
@@ -104,19 +111,19 @@ def main():
     top3 = sorted(unique.values(), key=lambda x: x["views"], reverse=True)[:3]
     
     if not top3:
-        send_telegram("Não encontrei shorts virais hoje. Tente novamente amanhã.")
+        send_telegram("Não encontrei shorts recentes hoje. Tente novamente amanhã.")
         return
     
     hoje = datetime.now().strftime("%d/%m/%Y")
-    mensagem = f"🔥 Top 3 Shorts Virais — Esportes & Tecnologia\n📅 {hoje}\n\n"
+    mensagem = f"🔥 Top 3 Shorts Prontos pra Baixar\n📅 {hoje}\n⚽ Futebol • Futevôlei • Gols • 📱 Celulares • 🤖 IA\n\n"
     
     for i, v in enumerate(top3, 1):
         views_formatado = f"{v['views']:,}".replace(",", ".")
         mensagem += f"{i}. {v['title']}\n"
         mensagem += f"   👀 {views_formatado} views | {v['channel']}\n"
-        mensagem += f"   🔗 {v['link']}\n\n"
+        mensagem += f"   📥 {v['link']}\n\n"
     
-    mensagem += "Boa postagem no perfil! 🚀"
+    mensagem += "Abre o link no celular → YouTube → Baixar (ou use app de download de Shorts)\nBoa postagem! 🚀"
     
     send_telegram(mensagem)
     print("Mensagem enviada com sucesso!")
