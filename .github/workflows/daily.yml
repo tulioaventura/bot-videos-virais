@@ -1,0 +1,34 @@
+name: Bot Videos Virais Diario
+
+
+on:
+  schedule:
+    # Roda todo dia às 12:00 UTC = 09:00 horário de Brasília
+    - cron: '0 12 * * *'
+  workflow_dispatch:  # Permite rodar manualmente também
+
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+
+      - name: Run bot
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: python main.py
